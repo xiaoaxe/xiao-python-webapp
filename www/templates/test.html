@@ -1,13 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
+<! DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Test users - Awesome Python Webapp</title>
+    <meta charset="utf-8"/>
+    <title>xiao python webapp index</title>
 </head>
 <body>
-<h1>All users</h1>
+<h1>all Users</h1>
 {% for u in users %}
-<p>{{u.name}} / {{u.email}}</p>
+    <p>
+        {{ u.name }}/{{ u.email }}
+    </p>
 {% endfor %}
 </body>
+
 </html>

@@ -22,6 +22,7 @@ import asyncio
 from aiohttp import web
 import time
 from datetime import datetime
+import json
 
 
 def datetime_filter(t):
@@ -64,10 +65,24 @@ def response_factory(app, handler):
             return resp
         elif isinstance(r, str):
             resp = web.Response(body=r.encode())
+            resp.content_type = 'text/html;chatset=utf-8'
             return resp
+        elif isinstance(r, dict):
+            template = r.get('__template__')
+            if template is None:
+                resp = web.Response(body=json.dumps(r, ensure_ascii=False, default=lambda o: o.__dict__).encode())
+                resp.content_type = 'application/json;charset=utf-8'
+                return resp
+            else:
+                resp = web.Response(body=app['__templating__'].get_template(template).render(**r).encode())
+                resp.content_type = 'text/html;charset=utf-8'
+                return resp
         else:
-            logging.info('response type err')
-            return None
+            resp = web.Response(body=str(r).encode())
+            resp.content_type = 'text/plain;charset=utf-8'
+            return resp
+
+    return response
 
 
 def main():

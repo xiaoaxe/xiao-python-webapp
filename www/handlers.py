@@ -21,6 +21,7 @@ from www.models import User, Comment, Blog, next_id
 
 
 @get("/")
+@asyncio.coroutine
 def index(request):
     users = yield from User.findAll()
     return {
