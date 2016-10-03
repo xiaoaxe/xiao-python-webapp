@@ -29,17 +29,18 @@ def next_id():
 class User(Model):
     __table__ = "users"
 
-    id = StringField(primary_key=True, default=next_id, ddl='varchat(50)')
+    id = StringField(primary_key=True, default=next_id, ddl='varchar(50)')
     email = StringField(ddl="varchar(50)")
     passwd = StringField(ddl="varchar(50)")
     admin = BooleanField()
     name = StringField(ddl="varchar(50)")
     image = StringField(ddl="varchar(500)")
-    create_at = FloatField(default=time.time)
+    created_at = FloatField(default=time.time)
 
 
 class Blog(Model):
     __table__ = 'blogs'
+
     id = StringField(primary_key=True, default=next_id, ddl="varchar(50)")
     user_id = StringField(ddl="varchar(50)")
     user_name = StringField(ddl="varchar(50)")
@@ -47,7 +48,7 @@ class Blog(Model):
     name = StringField(ddl="varchar(50)")
     summary = StringField(ddl="varchar(200)")
     content = TextField()
-    create_at = FloatField(default=time.time)
+    created_at = FloatField(default=time.time)
 
 
 class Comment(Model):
@@ -59,7 +60,7 @@ class Comment(Model):
     user_name = StringField(ddl="varchar(50)")
     user_image = StringField(ddl="varchar(500)")
     content = TextField()
-    create_at = FloatField(default=time.time)
+    created_at = FloatField(default=time.time)
 
 
 def main():

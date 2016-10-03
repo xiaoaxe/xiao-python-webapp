@@ -14,63 +14,81 @@
 """
 
 import asyncio, logging
+# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
+
 import aiomysql
+import traceback
 
 
 def log(sql, args=()):
-    logging.info("SQL: %s" % sql)
+    logging.info("SQL:  %s" % sql)
 
 
-async def create_pool(loop, **kw):
+@asyncio.coroutine
+def create_pool(loop, **kw):
     logging.info("create database connection pool...")
     global __pool
-    __pool = await aiomysql.create_pool(
+    __pool = yield from aiomysql.create_pool(
             host=kw.get("host", "localhost"),
             port=kw.get("port", 3306),
             user=kw["user"],
             password=kw["password"],
             db=kw['db'],
-            charset=kw.get("charset", "utf-8"),
+            charset=kw.get("charset", "utf8"),
             autocommit=kw.get("autocommit", True),
             maxsize=kw.get("maxsize", 10),
             minsize=kw.get("minsize", 1),
             loop=loop
     )
+    if __pool:
+        print("create db pool success")
+    else:
+        print("fail to create db pool")
 
 
-async def select(sql, args, size=None):
+@asyncio.coroutine
+def select(sql, args, size=None):
     log(sql, args)
     global __pool
-    async with __pool.get() as conn:
-        async with conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(sql.replace("?", "%s"), args or ())
-            if size:
-                rs = await cur.fetchmany(size)
-            else:
-                rs = await cur.fetchall()
+    with (yield from __pool) as conn:
+        cur = yield from conn.cursor(aiomysql.DictCursor)
+        yield from cur.execute(sql.replace("?", "%s"), args or ())
+        if size:
+            rs = yield from cur.fetchmany(size)
+        else:
+            rs = yield from cur.fetchall()
 
-        logging.info("row returned: %s" % len(rs))
+        yield from cur.close()
+
+        logging.info("row returned:  %s" % len(rs))
         return rs
 
 
-async def execute(sql, args, autocommit=True):
+@asyncio.coroutine
+def execute(sql, args, autocommit=True):
     log(sql)
-    async with __pool.get() as conn:
+    with  (yield from __pool) as conn:
         if not autocommit:
-            await conn.begin()
+            yield from conn.begin()
 
         try:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(sql.replace("?", "%s"), args)
-                affected = cur.rowcount
+            cur = yield from conn.cursor()
+            yield from cur.execute(sql.replace("?", "%s"), args)
+            affected = cur.rowcount
 
             if not autocommit:
-                await conn.commit()
+                yield from conn.commit()
+
+            yield from cur.close()
 
         except BaseException as e:
+            traceback.print_exc()
+
             if not autocommit:
-                await conn.rollback()
+                yield from conn.rollback()
             raise
+
         return affected
 
 
@@ -78,7 +96,8 @@ def create_args_string(num):
     L = []
     for n in range(num):
         L.append("?")
-        return ", ".join(L)
+
+    return ", ".join(L)
 
 
 class Field(object):
@@ -122,7 +141,7 @@ class ModelMetaClass(type):
         if name == "Model":
             return type.__new__(cls, name, bases, attrs)
         tableName = attrs.get('__table__', None) or name
-        logging.info("found model: %s (table:%s)" % (name, tableName))
+        logging.info("found model: %s (table: %s)" % (name, tableName))
         mappings = dict()
         fields = []
         primaryKey = None
@@ -155,6 +174,7 @@ class ModelMetaClass(type):
             tableName, ", ".join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
         attrs["__delete__"] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey)
 
+        return type.__new__(cls,name,bases,attrs)
 
 class Model(dict, metaclass=ModelMetaClass):
     def __init__(self, **kw):
@@ -164,27 +184,28 @@ class Model(dict, metaclass=ModelMetaClass):
         try:
             return self[key]
         except KeyError:
-            raise AttributeError(r"'Model' object has no atribute '%s'" % key)
+            raise AttributeError(r"'Model' object has no attribute '%s'" % key)
 
     def __setattr__(self, key, value):
         self[key] = value
 
     def getValue(self, key):
-        return getattr(key, None)
+        return getattr(self,key, None)
 
     def getValueOrDefault(self, key):
-        value = getattr(self.key, None)
+        value = getattr(self,key, None)
         if value is None:
-            field = self.__mapping__[key]
+            field = self.__mappings__[key]
             if field.default is not None:
                 value = field.default() if callable(field.default) else field.default
-                logging.debug("using default value for %s, %s" % (key.str(value)))
-                setattr(self.key, value)
+                logging.debug("using default value for %s, %s" % (key, str(value)))
+                setattr(self,key, value)
 
         return value
 
     @classmethod
-    async def findAll(cls, where=None, args=None, **kw):
+    @asyncio.coroutine
+    def findAll(cls, where=None, args=None, **kw):
         'find objects by where clause. '
         sql = [cls.__select__]
         if where:
@@ -211,49 +232,54 @@ class Model(dict, metaclass=ModelMetaClass):
             else:
                 raise ValueError("Invalid limit value: %s" % str(limit))
 
-        rs = await select(' '.join(sql), args)
+        rs = yield from select(' '.join(sql), args)
         return [cls(**r) for r in rs]
 
     @classmethod
-    async def findNumber(cls, selectFiled, where=None, args=None):
+    @asyncio.coroutine
+    def findNumber(cls, selectFiled, where=None, args=None):
         'find number by select and where'
         sql = ['select %s _num_ from `%s`' % (selectFiled, cls.__table__)]
         if where:
             sql.append("where")
             sql.append(where)
 
-        rs = await select(" ".join(sql), args, 1)
+        rs = yield from select(" ".join(sql), args, 1)
         if len(rs) == 0:
             return None
         return rs[0]['_num_']
 
     @classmethod
-    async def find(cls, pk):
+    @asyncio.coroutine
+    def find(cls, pk):
         'find object bt primary key. '
-        rs = await select("%s where `%s` =?" % (cls.__select__, cls.__primary_key__), [pk], 1)
+        rs = yield from select("%s where `%s` =?" % (cls.__select__, cls.__primary_key__), [pk], 1)
         if len(rs) == 0:
             return None
         return cls(**rs[0])
 
-    async def save(self):
+    @asyncio.coroutine
+    def save(self):
         args = list(map(self.getValueOrDefault, self.__fields__))
         args.append(self.getValueOrDefault(self.__primary_key__))
-        rows = await execute(self.__insert__, args)
+        rows = yield from execute(self.__insert__, args)
         if rows != 1:
-            logging.warn("failed to insert record: affected rows: %s" % rows)
+            logging.warning("failed to insert record: affected rows: %s" % rows)
 
-    async def upt(self):
+    @asyncio.coroutine
+    def upt(self):
         args = list(map(self.getValue, self.__fields__))
         args.append(self.getValue(self.__primary_key__))
-        rows = await execute(self.__update__, args)
+        rows = yield from execute(self.__update__, args)
         if rows != 1:
-            logging.warn("failed to update by primary key: affected rows: %s" % rows)
+            logging.warning("failed to update by primary key: affected rows: %s" % rows)
 
-    async def remove(self):
+    @asyncio.coroutine
+    def remove(self):
         args = [self.getValue(self.__primary_key__)]
-        rows = await execute(self.__delete__, args)
+        rows = yield from execute(self.__delete__, args)
         if rows != 1:
-            logging.warn("failed to remove by primary key: affected rows : %s" % rows)
+            logging.warning("failed to remove by primary key: affected rows : %s" % rows)
 
 
 def main():
