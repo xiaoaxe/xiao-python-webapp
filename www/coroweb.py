@@ -115,7 +115,8 @@ class RequestHandler(object):
         self._named_kw_args = get_named_kw_args(fn)
         self._required_kw_args = get_required_kw_args(fn)
 
-        async def __call__(self, request):
+        @asyncio.coroutine
+        def __call__(self, request):
             kw = None
             if self._has_var_kw_arg or self._has_named_kw_args or self._required_kw_args:
                 if request.method == "POST":
@@ -124,13 +125,13 @@ class RequestHandler(object):
                         return web.HTTPBadRequest()
                     ct = request.cotent_type.lower()
                     if ct.startswith('application/json'):
-                        params = await request.json()
+                        params = yield from request.json()
                         if not isinstance(params, dict):
                             # return web.HTTPBadRequest("JSON body must be obect.")
                             return web.HTTPBadRequest()
                         kw = params
                     elif ct.startswith('application/x-www-form-urlencoded') or ct.startswith('multipart/form-data'):
-                        params = await request.post()
+                        params = yield from request.post()
                         kw = dict(**params)
                     else:
                         # return web.HTTPBadRequest('Unsupported Content-Type: %s' % request.cotent_type)
@@ -164,7 +165,7 @@ class RequestHandler(object):
                         return web.HTTPBadRequest()
             logging.info("call with args: %s" % str(kw))
             try:
-                r = await self._func(**kw)
+                r = yield from self._func(**kw)
                 return r
             except APIError as e:
                 return dict(error=e.error, data=e.data, messge=e.message)
@@ -184,7 +185,8 @@ def add_route(app, fn):
     if not asyncio.iscoroutinefunction(fn) and not inspect.isgeneratorfunction(fn):
         fn = asyncio.coroutine(fn)
     logging.info(
-        "add route %s %s => %s(%s)" % (method, path, fn.__name__, ", ".join(inspect.signature(fn).parameters.keys())))
+            "add route %s %s => %s(%s)" % (
+                method, path, fn.__name__, ", ".join(inspect.signature(fn).parameters.keys())))
     app.router.add_route(method, path, RequestHandler(app, fn))
 
 

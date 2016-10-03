@@ -21,9 +21,13 @@ from aiohttp import web
 
 import asyncio, os
 
+from www.coroweb import *
+
 from www.handlers import index
 
 from jinja2 import Environment, FileSystemLoader
+
+from www.midware import *
 
 
 def init_jinja2(app, **kw):
@@ -48,17 +52,13 @@ def init_jinja2(app, **kw):
             env.filters[name] = f
     app["__templating__"] = env
 
-
-# def index(request):
-#     return web.Response(body=b'<h1>Awesome</h1>')
-
-@asyncio.coroutine
 def init(loop):
-    app = web.Application(loop=loop)
-    app.router.add_route("GET", "/", index)
-    srv = yield from loop.create_server(app.make_handler(), "127.0.0.1", 9000)
-    logging.info("server started at http://127.0.0.1:9000...")
-    return srv
+    app = web.Application(loop=loop,middlewares=[
+        logger_factory,response_factory
+    ])
+    init_jinja2(app,filters=dict(datetime=datetime_filter))
+    add_routes(app,'handlers')
+    add_static(app)
 
 
 def main():
