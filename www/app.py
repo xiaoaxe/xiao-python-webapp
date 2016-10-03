@@ -3,7 +3,7 @@
 
 
 """
-@version: ??
+@version: 1.0
 @author: BaoQiang
 @license: Apache Licence 
 @contact: mailbaoqiang@gmail.com
@@ -13,24 +13,17 @@
 @time: 2016/8/1 21:20
 """
 
-import logging;
+import logging
 
 logging.basicConfig(level=logging.INFO)
 
-import asyncio, os, json, time
-from datetime import datetime
-from os import *
-
 from aiohttp import web
 
-import asyncio, os, json, time
+import asyncio, os
 
 from www.handlers import index
 
 from jinja2 import Environment, FileSystemLoader
-
-import www.orm
-from www.coroweb import add_routes, add_static
 
 
 def init_jinja2(app, **kw):

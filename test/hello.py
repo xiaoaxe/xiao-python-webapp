@@ -3,7 +3,7 @@
 
 
 """
-@version: ??
+@version: 1.0
 @author: BaoQiang
 @license: Apache Licence 
 @contact: mailbaoqiang@gmail.com
@@ -23,8 +23,8 @@ import json
 
 
 def http_post():
-    url = 'http://182.118.27.120:8080/nlpfaq/getfaq.do'
-    values = '{"api_key":"de75f746787e17471f314aa362d8ef23","question":"测试","verifycode":300001}'
+    url = ''
+    values = ''
 
     # jdata = json.dumps(values)  # 对数据进行JSON格式化编码
     http = urllib3.PoolManager()  # 生成页面请求的完整数据
@@ -36,6 +36,10 @@ def main():
     resp = http_post()
     print(resp.decode("utf-8"))
 
+def test():
+    print('hello')
+
 
 if __name__ == '__main__':
-    main()
+    # main()
+    test()
