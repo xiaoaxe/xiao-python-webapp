@@ -33,12 +33,13 @@ def datetime_filter(t):
     elif delta < 3600:
         s = u'%s分钟前' % (delta // 60)
     elif delta < 86400:
-        s = u'%s小时前' % (delta // 3660)
+        s = u'%s小时前' % (delta // 3600)
     elif delta < 604800:
         s = u'%s天前' % (delta // 86400)
     else:
         dt = datetime.fromtimestamp(t)
         s = u'%s年%s月%s日' % (dt.year, dt.month, dt.day)
+    return s
 
 
 @asyncio.coroutine

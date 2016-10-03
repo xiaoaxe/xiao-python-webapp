@@ -13,20 +13,33 @@
 @time: 2016/8/3 0:04
 """
 
-import re, time, json, logging, hashlib, base64, asyncio
+import time
 
-from www.coroweb import get, post
+from www.coroweb import get
+from www.models import Blog
 
-from www.models import User, Comment, Blog, next_id
 
+# @get("/")
+# @asyncio.coroutine
+# def index(request):
+#     users = yield from User.findAll()
+#     return {
+#         '__template__': 'test.html',
+#         'users': users
+#     }
 
-@get("/")
-@asyncio.coroutine
+@get('/')
 def index(request):
-    users = yield from User.findAll()
+    summary = 'i am a sample summary.'
+    blogs = [
+        Blog(id='3', name='something new', summary=summary, created_at=time.time() - 120),
+        Blog(id='2', name='learn swift', summary=summary, created_at=time.time() - 3600),
+        Blog(id='1', name='First Blog', summary=summary, created_at=time.time() - 7200)
+    ]
+
     return {
-        '__template__': 'test.html',
-        'users': users
+        '__template__': 'blogs.html',
+        'blogs': blogs
     }
 
 
