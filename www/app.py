@@ -52,7 +52,7 @@ def init_jinja2(app, **kw):
 
 
 def init(loop):
-    yield from create_pool(loop, user='root', password='Full77', db='nlp_web')
+    yield from create_pool(loop, **configs.db)
 
     app = web.Application(loop=loop, middlewares=[
         logger_factory, auth_factory, response_factory

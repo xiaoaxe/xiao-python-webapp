@@ -84,6 +84,18 @@ def signout(request):
 
 # 注册结束
 
+#增删改查 开始
+@get('/manage/blogs/create')
+def manage_create_blog():
+    return {
+        '__template__': 'manage_blog_edit.html',
+        'id':'',
+        'action':'/api/blogs'
+    }
+
+#增删改查 结束
+
+
 #api开始
 
 @get('/api/users')
