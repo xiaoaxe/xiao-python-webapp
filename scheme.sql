@@ -39,6 +39,7 @@ CREATE TABLE blogs(
 CREATE TABLE comments(
   `id` varchar(50) NOT NULL ,
   `blog_id` varchar(50) NOT NULL ,
+  `user_id` varchar(50) NOT NULL ,
   `user_name` varchar(50) NOT NULL ,
   `user_image` varchar(500) NOT NULL ,
   `content` mediumtext NOT NULL ,

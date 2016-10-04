@@ -25,7 +25,8 @@ import asyncio
 from apis import *
 from config import configs
 from coroweb import get, post
-from models import Blog, User, next_id
+from models import Blog, User, next_id, Comment
+from markdown2 import markdown
 
 _RE_EMAIL = re.compile(r'^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\_\-]+){1,4}$')
 _RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
@@ -85,7 +86,23 @@ def signout(request):
     return r
 
 
-# 增删改查 开始
+# 页面显示
+@get('/blog/{id}')
+def get_blog(id):
+    blog = yield from Blog.find(id)
+    comments = yield from Comment.findAll('blog_id=?', [id], orderBy='created_at desc')
+    for c in comments:
+        c.html_content = text2html(c.content)
+
+    blog.html_content = markdown(blog.content)
+    return {
+        '__template__': 'blog.html',
+        'blog': blog,
+        'comments': comments
+    }
+
+
+# 博客管理 增删改查
 @get('/manage/blogs/create')
 def manage_create_blog():
     return {
@@ -239,6 +256,12 @@ def get_page_index(page_str):
         p = 1
 
     return p
+
+
+def text2html(text):
+    lines = map(lambda s: '<p>%s</p>' % s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
+                filter(lambda s: s.strip() != '', text.split('\n')))
+    return ''.join(lines)
 
 
 # @get('/api/users')
