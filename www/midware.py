@@ -15,16 +15,19 @@
 @time: 2016/10/3 18:00
 """
 
-import logging
 import asyncio
-from aiohttp import web
+import hashlib
+import json
+import logging
 import time
 from datetime import datetime
-import json
-from conf.config import configs
-from www.models import User
-import hashlib
 
+from aiohttp import web
+
+from config import configs
+from models import User
+
+logging.basicConfig(level=logging.INFO)
 
 def datetime_filter(t):
     delta = int(time.time() - t)

@@ -1,5 +1,7 @@
 .idea
 *.class
+conf/__pycache__/
+www/__pycache__/
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
