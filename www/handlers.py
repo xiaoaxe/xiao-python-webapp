@@ -16,6 +16,8 @@
 import hashlib
 import re
 import time
+import json
+import logging
 
 from aiohttp import web
 import asyncio
@@ -31,7 +33,8 @@ _RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
 COOKIE_NAME = configs.session.cookiename
 _COOKIE_KEY = configs.session.secret
 
-#主页开始
+
+# 主页开始
 @get('/')
 def index(request):
     summary = 'i am a sample summary.'
@@ -46,6 +49,7 @@ def index(request):
         'blogs': blogs
     }
 
+
 @get("/test")
 @asyncio.coroutine
 def test_index(request):
@@ -55,7 +59,6 @@ def test_index(request):
         'users': users
     }
 
-#主页结束
 
 # 注册开始
 
@@ -82,30 +85,25 @@ def signout(request):
     return r
 
 
-# 注册结束
-
-#增删改查 开始
+# 增删改查 开始
 @get('/manage/blogs/create')
 def manage_create_blog():
     return {
         '__template__': 'manage_blog_edit.html',
-        'id':'',
-        'action':'/api/blogs'
+        'id': '',
+        'action': '/api/blogs'
     }
 
-#增删改查 结束
+
+@get('/manage/blogs')
+def manage_blogs(*, page='1'):
+    return {
+        '__template__': 'manage_blogs.html',
+        'page_index': get_page_index(page)
+    }
 
 
-#api开始
-
-@get('/api/users')
-def api_get_users():
-    users = yield from User.findAll(orderBy='created_at desc')
-    for u in users:
-        u.passwd = '******'
-
-    return dict(users=users)
-
+# api开始
 
 @post('/api/authenticate')
 def authenticate(*, email, passwd):
@@ -132,6 +130,26 @@ def authenticate(*, email, passwd):
     return r
 
 
+@get('/api/users')
+def api_get_users():
+    users = yield from User.findAll(orderBy='created_at desc')
+    for u in users:
+        u.passwd = '******'
+
+    return dict(users=users)
+
+
+@get('/api/blogs')
+def api_blogs(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, blogs=())
+    blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    return dict(page=p, blogs=blogs)
+
+
 @post('/api/users')
 def api_register_user(*, email, name, passwd):
     if not name or not name.strip():
@@ -142,7 +160,7 @@ def api_register_user(*, email, name, passwd):
         raise APIValueError('passwd')
     users = yield from User.findAll('email=?', email)
     if len(users) > 0:
-        raise APIError('regester failed', email, 'Email is already in use.')
+        raise APIError('register failed', 'email', 'Email is already in use.')
     uid = next_id()
     sha1_passwd = '%s:%s' % (uid, passwd)
     user = User(id=uid, name=name.strip(), email=email, passwd=hashlib.sha1(sha1_passwd.encode()).hexdigest(),
@@ -169,18 +187,18 @@ def api_create_blog(request, *, name, summary, content):
     yield from blog.save()
     return blog
 
-#api结束
 
-#功能函数开始
+# 功能函数开始
 
-#根据用户， 计算加密的cookie
+# 根据用户， 计算加密的cookie
 def user2cookie(user, max_age):
     expires = str(int(time.time() + max_age))
     s = '%s-%s-%s-%s' % (user.id, user.passwd, expires, _COOKIE_KEY)
     L = [user.id, expires, hashlib.sha1(s.encode()).hexdigest()]
     return '-'.join(L)
 
-#请求开始的时候，如果有cookie，得到用户
+
+# 请求开始的时候，如果有cookie，得到用户
 @asyncio.coroutine
 def cookie2user(cookie_str):
     if not cookie_str:
@@ -211,7 +229,17 @@ def check_admin(request):
         raise APIPermissionError('sorry, you are not allowed to do so.')
 
 
-#功能函数结束
+def get_page_index(page_str):
+    p = 1
+    try:
+        p = int(page_str)
+    except ValueError as e:
+        pass
+    if p < 1:
+        p = 1
+
+    return p
+
 
 # @get('/api/users')
 # def api_get_users(*,page='1'):
