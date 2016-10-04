@@ -16,7 +16,6 @@
 """
 
 import asyncio
-import hashlib
 import json
 import logging
 import time
@@ -25,13 +24,13 @@ from datetime import datetime
 from aiohttp import web
 
 from config import configs
-from models import User
+from handlers import cookie2user
 
 logging.basicConfig(level=logging.INFO)
 
+
 def datetime_filter(t):
     delta = int(time.time() - t)
-    s = ''
     if delta < 60:
         s = u'一分钟前'
     elif delta < 3600:
@@ -72,31 +71,6 @@ def auth_factory(app, handler):
         return (yield from handler(request))
 
     return auth
-
-
-@asyncio.coroutine
-def cookie2user(cookie_str):
-    if not cookie_str:
-        return None
-    try:
-        L = cookie_str.split('-')
-        if len(L) != 3:
-            return None
-        uid, expires, sha1 = L
-        if int(expires) < time.time():
-            return None
-        user = yield from User.find(uid)
-        if user is None:
-            return None
-        s = '%s-%s-%s-%s' % (uid, user.passwd, expires, configs.session.secret)
-        if sha1 != hashlib.sha1(s.encode()).hexdigest():
-            logging.info('invalid sha1')
-            return None
-        user.passwd = '******'
-        return user
-    except Exception as e:
-        logging.exception(e)
-        return None
 
 
 @asyncio.coroutine

@@ -18,6 +18,7 @@ import re
 import time
 
 from aiohttp import web
+import asyncio
 
 from apis import *
 from config import configs
@@ -30,16 +31,7 @@ _RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
 COOKIE_NAME = configs.session.cookiename
 _COOKIE_KEY = configs.session.secret
 
-
-# @get("/")
-# @asyncio.coroutine
-# def index(request):
-#     users = yield from User.findAll()
-#     return {
-#         '__template__': 'test.html',
-#         'users': users
-#     }
-
+#主页开始
 @get('/')
 def index(request):
     summary = 'i am a sample summary.'
@@ -54,6 +46,18 @@ def index(request):
         'blogs': blogs
     }
 
+@get("/test")
+@asyncio.coroutine
+def test_index(request):
+    users = yield from User.findAll()
+    return {
+        '__template__': 'test.html',
+        'users': users
+    }
+
+#主页结束
+
+# 注册开始
 
 @get('/register')
 def register():
@@ -77,6 +81,10 @@ def signout(request):
     logging.info('user sign out.')
     return r
 
+
+# 注册结束
+
+#api开始
 
 @get('/api/users')
 def api_get_users():
@@ -149,14 +157,49 @@ def api_create_blog(request, *, name, summary, content):
     yield from blog.save()
     return blog
 
+#api结束
 
-# 计算加密的cookie
+#功能函数开始
+
+#根据用户， 计算加密的cookie
 def user2cookie(user, max_age):
     expires = str(int(time.time() + max_age))
     s = '%s-%s-%s-%s' % (user.id, user.passwd, expires, _COOKIE_KEY)
     L = [user.id, expires, hashlib.sha1(s.encode()).hexdigest()]
     return '-'.join(L)
 
+#请求开始的时候，如果有cookie，得到用户
+@asyncio.coroutine
+def cookie2user(cookie_str):
+    if not cookie_str:
+        return None
+    try:
+        L = cookie_str.split('-')
+        if len(L) != 3:
+            return None
+        uid, expires, sha1 = L
+        if int(expires) < time.time():
+            return None
+        user = yield from User.find(uid)
+        if user is None:
+            return None
+        s = '%s-%s-%s-%s' % (uid, user.passwd, expires, _COOKIE_KEY)
+        if sha1 != hashlib.sha1(s.encode()).hexdigest():
+            logging.info('invalid sha1')
+            return None
+        user.passwd = '******'
+        return user
+    except Exception as e:
+        logging.exception(e)
+        return None
+
+
+def check_admin(request):
+    if request.__user__ is None or not request.__user__.admin:
+        raise APIPermissionError('sorry, you are not allowed to do so.')
+
+
+#功能函数结束
 
 # @get('/api/users')
 # def api_get_users(*,page='1'):
