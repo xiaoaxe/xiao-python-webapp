@@ -10,6 +10,8 @@
     <script src="../static/js/jquery.min.js"></script>
     <script src="../static/js/sha1.min.js"></script>
     <script src="../static/js/uikit.min.js"></script>
+    <script src="../static/js/sticky.min.js"></script>
+    <script src="../static/js/vue.min.js"></script>
     <script src="../static/js/awesome.js"></script>
     {% block beforehead %}{% endblock %}
 </head>
@@ -29,13 +31,13 @@
                         <a href="#0"><i class="uk-icon-user"></i>{{ user.name }}</a>
                         <div class="uk-dropdown uk-dropdown-navbar">
                             <ul class="uk-nav uk-nav-navbar">
-                                <li><a href="/signout"><i class="uk-icon-sign-out"></i></a></li>
+                                <li><a href="signout"><i class="uk-icon-sign-out"></i></a></li>
                             </ul>
                         </div>
                     </li>
                 {% else %}
-                    <li><a href="/signin"><i class="uk-icon-sign-in"></i>登录</a></li>
-                    <li><a href="/regester"><i class="uk-icon-edit"></i>注册</a></li>
+                    <li><a href="signin"><i class="uk-icon-sign-in"></i>登录</a></li>
+                    <li><a href="register"><i class="uk-icon-edit"></i>注册</a></li>
                 {% endif %}
             </ul>
         </div>

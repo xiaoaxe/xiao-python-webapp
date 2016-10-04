@@ -53,7 +53,7 @@ def init(loop):
     yield from orm.create_pool(loop, user='root', password='Full77', db='nlp_web')
 
     app = web.Application(loop=loop, middlewares=[
-        logger_factory, response_factory
+        logger_factory,auth_factory, response_factory
     ])
 
     # app = web.Application(loop=loop)

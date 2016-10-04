@@ -137,10 +137,10 @@ class RequestHandler(object):
         kw = None
         if self._has_var_kw_arg or self._has_named_kw_args or self._required_kw_args:
             if request.method == "POST":
-                if not request.cotent_type:
+                if not request.content_type:
                     # return web.HTTPBadRequest('Missing Content-Type.')
                     return web.HTTPBadRequest()
-                ct = request.cotent_type.lower()
+                ct = request.content_type.lower()
                 if ct.startswith('application/json'):
                     params = yield from request.json()
                     if not isinstance(params, dict):
@@ -151,7 +151,7 @@ class RequestHandler(object):
                     params = yield from request.post()
                     kw = dict(**params)
                 else:
-                    # return web.HTTPBadRequest('Unsupported Content-Type: %s' % request.cotent_type)
+                    # return web.HTTPBadRequest('Unsupported Content-Type: %s' % request.content_type)
                     return web.HTTPBadRequest()
             if request.method == "GET":
                 qs = request.query_string

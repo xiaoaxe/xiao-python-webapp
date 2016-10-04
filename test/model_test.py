@@ -19,6 +19,7 @@ from www import orm
 from www.models import *
 import asyncio
 
+
 @asyncio.coroutine
 def test_upt(loop):
     print('start')
@@ -30,18 +31,19 @@ def test_upt(loop):
     # yield from u.save()
 
     yield from orm.create_pool(loop, user='root', password='Full77', db='nlp_web')
-    u = User(name='xiao', email='123@test.com', passwd='654123', image='about:blank')
+    # u = User(name='xiao', email='123@test.com', passwd='654123', image='about:blank')
+    u = User(name='two', email='new@test.com', passwd='654789', image='about:blank')
     print(u)
     yield from u.save()
 
     print('end')
 
+
 def main():
     loop = asyncio.get_event_loop()
     loop.run_until_complete(test_upt(loop))
-    loop.close()
-    if loop.is_closed():
-        return
+    loop.run_forever()
+
 
 if __name__ == '__main__':
     main()

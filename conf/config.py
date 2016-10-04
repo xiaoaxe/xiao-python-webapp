@@ -13,7 +13,8 @@
 @time: 2016/8/2 23:49
 """
 
-from www import config_default,config_override
+from conf import config_override
+from conf import config_default
 
 
 class Dict(dict):
@@ -54,7 +55,7 @@ configs = config_default.configs
 
 try:
     import config_override
-    configs=merge(configs,config_override.configs)
+    configs=merge(configs, config_override.configs)
 except ImportError:
     pass
 

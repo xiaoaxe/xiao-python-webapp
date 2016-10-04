@@ -23,7 +23,8 @@ configs= {
         'db':'nlp_web'
     },
     'session':{
-        'secret':"Awesome"
+        'secret':"xiao-42",
+        'cookiename':'xiaosession'
     }
 
 }

@@ -16,13 +16,14 @@
 """
 
 import logging
-
-logging.basicConfig(level=logging.INFO)
 import asyncio
 from aiohttp import web
 import time
 from datetime import datetime
 import json
+from conf.config import configs
+from www.models import User
+import hashlib
 
 
 def datetime_filter(t):
@@ -50,6 +51,49 @@ def logger_factory(app, handler):
         return (yield from handler(request))
 
     return logger
+
+
+@asyncio.coroutine
+def auth_factory(app, handler):
+    @asyncio.coroutine
+    def auth(request):
+        logging.info('check user: %s %s' % (request.method, request.path))
+        request.__user__ = None
+        cookie_str = request.cookies.get(configs.session.cookiename)
+        if cookie_str:
+            user = yield from cookie2user(cookie_str)
+            if user:
+                logging.info('set current user: %s' % user.email)
+                request.__user__ = user
+
+        return (yield from handler(request))
+
+    return auth
+
+
+@asyncio.coroutine
+def cookie2user(cookie_str):
+    if not cookie_str:
+        return None
+    try:
+        L = cookie_str.split('-')
+        if len(L) != 3:
+            return None
+        uid, expires, sha1 = L
+        if int(expires) < time.time():
+            return None
+        user = yield from User.find(uid)
+        if user is None:
+            return None
+        s = '%s-%s-%s-%s' % (uid, user.passwd, expires, configs.session.secret)
+        if sha1 != hashlib.sha1(s.encode()).hexdigest():
+            logging.info('invalid sha1')
+            return None
+        user.passwd = '******'
+        return user
+    except Exception as e:
+        logging.exception(e)
+        return None
 
 
 @asyncio.coroutine

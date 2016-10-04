@@ -16,7 +16,6 @@
 """
 
 import logging
-logging.basicConfig(level=logging.INFO)
 import asyncio
 import os
 import json
