@@ -6,8 +6,9 @@
     <link rel="stylesheet" href="/static/css/uikit.min.css">
 
     <title>主页 - Xiao Python Webapp</title>
+
     <style type="text/css">
-        #container,#enter {
+        #container, #enter {
             text-align: center;
             margin: auto;
         {#            width: 1000px;#}{#            height: 500px;#}
@@ -19,14 +20,14 @@
     </style>
 
 </head>
-<body>
+<body onkeydown="return jump(event)">
 <div id="container">
     <img id="rotate_img" src="/static/img/Google.png" width="200" height="200">
 </div>
 <div id="enter">
     <br>
     <br>
-    <a href="blogs" style="text-align: center" class="uk-button-large">enter</a>
+    <a id="enter_link" href="blogs" style="text-align: center" class="uk-button-large">enter</a>
 </div>
 
 <script>
@@ -38,7 +39,7 @@
         function rotate() {
             r += i;
             if (Math.abs(r) >= 360)
-                r=0;
+                r = 0;
             element.style.MozTransform = "rotate(" + r + "deg)";
             element.style.webkitTransform = "rotate(" + r + "deg)";
             element.style.msTransform = "rotate(" + r + "deg)";
@@ -57,9 +58,15 @@
             if (timer)return;
             timer = setInterval(rotate, 8);
         };
+    })();
 
-    }());
+    function jump(evt) {
+        if (evt.keyCode == 13) {
+            window.location.href = document.getElementById("enter_link").href;
+        }
+    }
 </script>
+
 
 </body>
 
