@@ -13,7 +13,7 @@
 @time: 2016/8/2 23:49
 """
 
-from www import config_default, config_override
+import config_default
 
 
 class Dict(dict):

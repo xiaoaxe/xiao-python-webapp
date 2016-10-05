@@ -1,8 +1,11 @@
 访问网址：
 http://xiao-blog.tunnel.qydev.com/
 
+服务启动命令：
+start /b app.bat >> log/app.log 2>&1
+
 映射公网服务，启动命令：
-start /b ngrok.bat
+start /b ngrok.bat >> log/server.log 2>&1
 D:\\win\\ngrok\\ngrok.exe -config=D:\\win\\ngrok\\ngrok.cfg -subdomain xiao-blog 9000
 
 已注册用户：
