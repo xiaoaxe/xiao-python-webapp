@@ -285,7 +285,7 @@ def api_update_blog(id, request, *, name, summary, content):
 def api_delete_blog(request, *, id):
     check_admin(request)
     blog = yield from Blog.find(id)
-    if blog in None:
+    if blog is None:
         return APIResourceNotFoundError('Blog')
     yield from blog.remove()
     return dict(id=id)
@@ -314,7 +314,7 @@ def api_create_comment(id, request, *, content):
 def api_delete_comment(id, request):
     check_admin(request)
     c = yield from Comment.find(id)
-    if c in None:
+    if c is None:
         return APIResourceNotFoundError('Comment')
 
     yield from c.remove()
