@@ -24,7 +24,7 @@ configs= {
     },
     'session':{
         'secret':"xiao-42",
-        'cookiename':'xiaosession'
+        'name':'xiaosession'
     }
 
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     {% block meta %}{% endblock %}
-    <title>{% block title %} ？ {% endblock %} - xiao-python-webapp</title>
+    <title>{% block title %} ？ {% endblock %} - Xiao-Python-Webapp</title>
     <link rel="stylesheet" href="/static/css/uikit.min.css">
     <link rel="stylesheet" href="/static/css/uikit.gradient.min.css">
     <link rel="stylesheet" href="/static/css/awesome.css">
@@ -13,22 +13,22 @@
     <script src="/static/js/sticky.min.js"></script>
     <script src="/static/js/vue.min.js"></script>
     <script src="/static/js/awesome.js"></script>
-    {% block beforehead %}{% endblock %}
+    {% block beforehead %}<!-- before head -->{% endblock %}
 </head>
 <body>
 <nav class="uk-navbar uk-navbar-attached uk-margin-bottom">
     <div class="uk-container uk-container-center">
-        <a href="/" class="uk-navbar-brand">xiao</a>
+        <a href="/" class="uk-navbar-brand">Xiao</a>
         <ul class="uk-navbar-nav">
             <li data-url="blogs"><a href="/"><i class="uk-icon-home"></i>日志</a></li>
-            <li><a target="_blank" href="#"><i class="uk-icon-book"></i>教程</a></li>
-            <li><a target="_blank" href="#"><i class="uk-icon-code"></i>源码</a></li>
+            <li><a target="_blank" href="http://github.com/githubao"><i class="uk-icon-book"></i>教程</a></li>
+            <li><a target="_blank" href="http://github.com/githubao"><i class="uk-icon-code"></i>源码</a></li>
         </ul>
         <div class="uk-navbar-flip">
             <ul class="uk-navbar-nav">
-                {% if user %}
+                {% if __user__ %}
                     <li class="uk-parent" data-uk-dropdown>
-                        <a href="#0"><i class="uk-icon-user"></i>{{ user.name }}</a>
+                        <a href="#0"><i class="uk-icon-user"></i>{{ __user__.name }}</a>
                         <div class="uk-dropdown uk-dropdown-navbar">
                             <ul class="uk-nav uk-nav-navbar">
                                 <li><a href="/signout"><i class="uk-icon-sign-out"></i></a></li>
@@ -55,14 +55,20 @@
     <div class="uk-container uk-container-center uk-text-center">
         <div class="uk-panel uk-margin-top uk-margin-bottom">
             <p>
-                <a target="_blank" href="#" class="uk-icon-button uk-icon-weibo"></a>
-                <a target="_blank" href="#" class="uk-icon-button uk-icon-github"></a>
-                <a target="_blank" href="#" class="uk-icon-button uk-icon-linkedin-square"></a>
-                <a target="_blank" href="#" class="uk-icon-button uk-icon-twitter"></a>
+                <a target="_blank" href="http://user.qzone.qq.com/779439458" class="uk-icon-button uk-icon-apple"></a>
+                <a target="_blank" href="https://weibo.com/hustbao" class="uk-icon-button uk-icon-weibo"></a>
+                <a target="_blank" href="https://plus.google.com/110575311268682059060" class="uk-icon-button uk-icon-google-plus"></a>
+                <a target="_blank" href="https://github.com/githubao" class="uk-icon-button uk-icon-github"></a>
+                <a target="_blank" href="https://www.facebook.com/profile.php?id=100008894133319"
+                   class="uk-icon-button uk-icon-facebook"></a>
+                <a target="_blank" href="https://twitter.com/pbaoqiangd" class="uk-icon-button uk-icon-twitter"></a>
             </p>
             <p>Powered by <a href="#">Xiao Python Webapp</a>. Copyright &copy; 2016. [<a href="/manage/"
                                                                                          target="_blank">Manage</a>]</p>
-            <a target="_blank" href="#"><i class="uk-icon-html5" style="font-size: 64px; color: #444;"></i></a>
+            <p><a href="http://www.github.com/githubao" target="_blank">www.github.com/githubao</a>. All rights
+                reserved.</p>
+            <a target="_blank" href="http://www.w3.org/TR/html5/"><i class="uk-icon-html5"
+                                                                     style="font-size: 64px; color: #444;"></i></a>
         </div>
     </div>
 </div>

@@ -31,33 +31,26 @@ from markdown2 import markdown
 _RE_EMAIL = re.compile(r'^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\_\-]+){1,4}$')
 _RE_SHA1 = re.compile(r'^[0-9a-f]{40}$')
 
-COOKIE_NAME = configs.session.cookiename
+COOKIE_NAME = configs.session.name
 _COOKIE_KEY = configs.session.secret
 
 
 # 主页开始
 @get('/')
-def index(request):
-    summary = 'i am a sample summary.'
-    blogs = [
-        Blog(id='3', name='something new', summary=summary, created_at=time.time() - 120),
-        Blog(id='2', name='learn swift', summary=summary, created_at=time.time() - 3600),
-        Blog(id='1', name='First Blog', summary=summary, created_at=time.time() - 7200)
-    ]
+def index(*, page='1'):
+    # page_index = get_page_index(page)
+
+    num = yield from Blog.findNumber('count(id)')
+    page = Page(num)
+    if num == 0:
+        blogs = []
+    else:
+        blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(page.offset, page.limit))
 
     return {
         '__template__': 'blogs.html',
+        'page': page,
         'blogs': blogs
-    }
-
-
-@get("/test")
-@asyncio.coroutine
-def test_index(request):
-    users = yield from User.findAll()
-    return {
-        '__template__': 'test.html',
-        'users': users
     }
 
 
@@ -79,7 +72,7 @@ def signin():
 
 @get('/signout')
 def signout(request):
-    referer = request.header.get('Referer')
+    referer = request.headers.get('Referer')
     r = web.HTTPFound(referer or '/')
     r.set_cookie(COOKIE_NAME, '-deleted-', max_age=0, httponly=True)
     logging.info('user sign out.')
@@ -103,13 +96,9 @@ def get_blog(id):
 
 
 # 博客管理 增删改查
-@get('/manage/blogs/create')
-def manage_create_blog():
-    return {
-        '__template__': 'manage_blog_edit.html',
-        'id': '',
-        'action': '/api/blogs'
-    }
+@get('/manage/')
+def manage():
+    return 'redirect:/manage/comments'
 
 
 @get('/manage/blogs')
@@ -120,8 +109,43 @@ def manage_blogs(*, page='1'):
     }
 
 
+@get('/manage/comments')
+def manage_comments(*, page='1'):
+    return {
+        '__template__': 'manage_comments.html',
+        'page_index': get_page_index(page)
+    }
+
+
+@get('/manage/users')
+def manage_users(*, page='1'):
+    return {
+        '__template__': 'manage_users.html',
+        'page_index': get_page_index(page)
+    }
+
+
+@get('/manage/blogs/create')
+def manage_create_blog():
+    return {
+        '__template__': 'manage_blog_edit.html',
+        'id': '',
+        'action': '/api/blogs'
+    }
+
+
+@get('/manage/blogs/edit')
+def manage_edit_blog(*, id):
+    return {
+        '__template__': 'manage_blog_edit.html',
+        'id': id,
+        'action': '/api/blogs/%s' % id
+    }
+
+
 # api开始
 
+# 注册
 @post('/api/authenticate')
 def authenticate(*, email, passwd):
     if not email:
@@ -147,26 +171,6 @@ def authenticate(*, email, passwd):
     return r
 
 
-@get('/api/users')
-def api_get_users():
-    users = yield from User.findAll(orderBy='created_at desc')
-    for u in users:
-        u.passwd = '******'
-
-    return dict(users=users)
-
-
-@get('/api/blogs')
-def api_blogs(*, page='1'):
-    page_index = get_page_index(page)
-    num = yield from Blog.findNumber('count(id)')
-    p = Page(num, page_index)
-    if num == 0:
-        return dict(page=p, blogs=())
-    blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
-    return dict(page=p, blogs=blogs)
-
-
 @post('/api/users')
 def api_register_user(*, email, name, passwd):
     if not name or not name.strip():
@@ -181,7 +185,8 @@ def api_register_user(*, email, name, passwd):
     uid = next_id()
     sha1_passwd = '%s:%s' % (uid, passwd)
     user = User(id=uid, name=name.strip(), email=email, passwd=hashlib.sha1(sha1_passwd.encode()).hexdigest(),
-                image='http://www.gravatar.com/acatar/%s?d=mm&s=120' % hashlib.md5(email.encode()).hexdigest())
+                # image='http://www.gravatar.com/acatar/%s?d=mm&s=120' % hashlib.md5(email.encode()).hexdigest())
+                image='/static/img/user.png')
     yield from user.save()
     r = web.Response()
     r.content_type = 'application/json'
@@ -189,6 +194,59 @@ def api_register_user(*, email, name, passwd):
     return r
 
 
+# 用户信息
+@get('/api/users')
+def api_get_users(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from User.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, users=())
+    users = yield from User.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    for u in users:
+        u.passwd = '******'
+        return dict(page=p, users=users)
+
+
+# @get('/api/users')
+# def api_get_users():
+#     users = yield from User.findAll(orderBy='created_at desc')
+#     for u in users:
+#         u.passwd = '******'
+#
+#     return dict(users=users)
+
+# 博客信息
+@get('/api/blogs/{id}')
+def api_get_blog(*, id):
+    blog = yield from Blog.find(id)
+    return blog
+
+
+@get('/api/blogs')
+def api_blogs(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Blog.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, blogs=())
+    blogs = yield from Blog.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    return dict(page=p, blogs=blogs)
+
+
+# 评论信息
+@get('/api/comments')
+def api_commnets(*, page='1'):
+    page_index = get_page_index(page)
+    num = yield from Comment.findNumber('count(id)')
+    p = Page(num, page_index)
+    if num == 0:
+        return dict(page=p, comments=())
+    comments = yield from Comment.findAll(orderBy='created_at desc', limit=(p.offset, p.limit))
+    return dict(page=p, comments=comments)
+
+
+# 博客增删改查
 @post('/api/blogs')
 def api_create_blog(request, *, name, summary, content):
     check_admin(request)
@@ -203,6 +261,64 @@ def api_create_blog(request, *, name, summary, content):
                 content=content.strip())
     yield from blog.save()
     return blog
+
+
+@post('/api/blogs/{id}')
+def api_update_blog(id, request, *, name, summary, content):
+    check_admin(request)
+
+    if not name or not name.strip():
+        raise APIValueError('name', 'name cannot by empty.')
+    if not summary or not summary.strip():
+        raise APIValueError('summary', 'summary cannot by empty.')
+    if not content or not content.strip():
+        raise APIValueError('content', 'content cannot by empty.')
+    blog = yield from Blog.find(id)
+    blog.name = name.strip()
+    blog.summary = summary.strip()
+    blog.content = content.strip()
+    yield from blog.upt()
+    return blog
+
+
+@post('/api/blogs/{id}/delete')
+def api_delete_blog(request, *, id):
+    check_admin(request)
+    blog = yield from Blog.find(id)
+    if blog in None:
+        return APIResourceNotFoundError('Blog')
+    yield from blog.remove()
+    return dict(id=id)
+
+
+# 评论增删改查
+@post('/api/blogs/{id}/comments')
+def api_create_comment(id, request, *, content):
+    user = request.__user__
+    if user is None:
+        return APIPermissionError('请先登录，再进行评论')
+    if not content or not content.strip():
+        raise APIValueError('content', 'content cannot by empty.')
+
+    blog = yield from Blog.find(id)
+    if blog is None:
+        return APIResourceNotFoundError('Blog')
+
+    comment = Comment(blog_id=blog.id, user_id=user.id, user_name=user.name, user_image=user.image,
+                      content=content.strip())
+    yield from comment.save()
+    return comment
+
+
+@post('/api/comments/{id}/delete')
+def api_delete_comment(id, request):
+    check_admin(request)
+    c = yield from Comment.find(id)
+    if c in None:
+        return APIResourceNotFoundError('Comment')
+
+    yield from c.remove()
+    return dict(id=id)
 
 
 # 功能函数开始
@@ -226,6 +342,7 @@ def cookie2user(cookie_str):
             return None
         uid, expires, sha1 = L
         if int(expires) < time.time():
+            logging.info('cookie is expired')
             return None
         user = yield from User.find(uid)
         if user is None:
@@ -264,17 +381,29 @@ def text2html(text):
     return ''.join(lines)
 
 
-# @get('/api/users')
-# def api_get_users(*,page='1'):
-#     page_index = get_page_index(page)
-#     num = yield from User.findNumber('count(id)')
-#     p = Page(num,page_index)
-#     if num ==0:
-#         return dict(page=p,users=())
-#     users = yield from User.findAll(orderBy='created_at desc', limit=(p.offset,p.limit))
-#     for u in users:
-#         u.passwd = '******'
-#         return dict(page=p,users=users)
+@get('/test_index')
+def test_index(request):
+    summary = 'i am a sample summary.'
+    blogs = [
+        Blog(id='3', name='something new', summary=summary, created_at=time.time() - 120),
+        Blog(id='2', name='learn swift', summary=summary, created_at=time.time() - 3600),
+        Blog(id='1', name='First Blog', summary=summary, created_at=time.time() - 7200)
+    ]
+
+    return {
+        '__template__': 'blogs.html',
+        'blogs': blogs
+    }
+
+
+@get("/first_index")
+@asyncio.coroutine
+def first_index(request):
+    users = yield from User.findAll()
+    return {
+        '__template__': 'test.html',
+        'users': users
+    }
 
 
 def main():
