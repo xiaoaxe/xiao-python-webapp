@@ -1,0 +1,66 @@
+<! DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="/static/css/uikit.min.css">
+
+    <title>index - Xiao Python Webapp</title>
+    <style type="text/css">
+        #container,#enter {
+            text-align: center;
+            margin: auto;
+        {#            width: 1000px;#}{#            height: 500px;#}
+        }
+
+        img {
+            margin: 150px auto 0 auto;
+        }
+    </style>
+
+</head>
+<body>
+<div id="container">
+    <img id="rotate_img" src="/static/img/Google.png" width="200" height="200">
+</div>
+<div id="enter">
+    <br>
+    <br>
+    <a href="blogs" style="text-align: center" class="uk-button-large">enter</a>
+</div>
+
+<script>
+    (function () {
+        var element = document.getElementById("rotate_img");
+        var r = 0;
+        var i = 1;
+
+        function rotate() {
+            r += i;
+            if (Math.abs(r) >= 360)
+                r=0;
+            element.style.MozTransform = "rotate(" + r + "deg)";
+            element.style.webkitTransform = "rotate(" + r + "deg)";
+            element.style.msTransform = "rotate(" + r + "deg)";
+            element.style.OTransform = "rotate(" + r + "deg)";
+            element.style.transform = "rotate(" + r + "deg)";
+        }
+
+        var timer = setInterval(rotate, 5);
+
+        element.onmouseover = function () {
+            clearInterval(timer);
+            timer = null;
+        };
+
+        element.onmouseout = function () {
+            if (timer)return;
+            timer = setInterval(rotate, 3);
+        };
+
+    }());
+</script>
+
+</body>
+
+</html>

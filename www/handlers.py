@@ -37,7 +37,14 @@ _COOKIE_KEY = configs.session.secret
 
 # 主页开始
 @get('/')
-def index(*, page='1'):
+def index():
+    # return 'redirect:/blogs'
+    return {
+        '__template__': 'index.html',
+    }
+
+@get('/blogs')
+def blogs(*, page='1'):
     # page_index = get_page_index(page)
 
     num = yield from Blog.findNumber('count(id)')
