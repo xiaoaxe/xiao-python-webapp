@@ -29,74 +29,77 @@
 {% endblock %}
 
 {% block content %}
-<div class="uk-width-3-4">
-    <article class="uk-article">
-        <h2>{{ blog.name }}</h2>
-        <p class="uk-article-meta">发表于{{ blog.created_at|datetime }}</p>
-        <p>{{ blog.html_content|safe }}</p>
-    </article>
-    <hr class="uk-article-divider">
-
-    {% if __user__ %}
-        <h3>发表评论</h3>
-        <article class="uk-comment">
-            <header class="uk-comment-header">
-                <img class="uk-comment-avatar uk-border-circle" width="50" height="50" src="{{ __user__.image }}">
-                <h4 class="uk-comment-title">{{ __user__.name }}</h4>
-            </header>
-            <div class="uk-comment-body">
-                <form id="form-comment" class="uk-form">
-                    <div class="uk-alert uk-alert-danger uk-hidden"></div>
-                    <div class="uk-form-row">
-                        <textarea rows="6" placeholder="说点什么吧" style="..."></textarea>
-                    </div>
-                    <div>
-                        <button type="submit" class="uk-button uk-button-primary"><i class="uk-icon-comment"></i>发表评论
-                        </button>
-                    </div>
-                </form>
-            </div>
+    <div class="uk-width-3-4">
+        <article class="uk-article">
+            <h2>{{ blog.name }}</h2>
+            <p class="uk-article-meta">发表于{{ blog.created_at|datetime }}</p>
+            <p>{{ blog.html_content|safe }}</p>
         </article>
-
         <hr class="uk-article-divider">
-    {% endif %}
 
-    <h3>最新评论</h3>
-    <ul class="uk-comment-list">
-        {% for c in comments %}
-        <li>
+        {% if __user__ %}
+            <h3>发表评论</h3>
             <article class="uk-comment">
-                <header class="uk-comment-header">
-                    <img class="uk-comment-avatar uk-border-circle" width="50" height="50" src="{{ c.user_image }}">
-                    <h4 class="uk-comment-title">{{ c.user_name }} {% if c.user_id == blog.user_id %}(作者){% endif %}</h4>
-                    <p class="uk-comment-meta"> {{ c.created_at|datetime }}</p>
-                </header>
+                {#            <header class="uk-comment-header">#}
+                {#                <img class="uk-comment-avatar uk-border-circle" width="30" height="30" src="{{ __user__.image }}">#}
+                {#                <h4 class="uk-comment-title">{{ __user__.name }}</h4>#}
+                {#            </header>#}
                 <div class="uk-comment-body">
-                    {{ c.html_content|safe }}
+                    <form id="form-comment" class="uk-form">
+                        <div class="uk-alert uk-alert-danger uk-hidden"></div>
+                        <div class="uk-form-row">
+                            <textarea rows="3" placeholder="说点什么吧" style="..."></textarea>
+                        </div>
+                        <div>
+                            <br>
+                            <button type="submit" class="uk-button uk-button-primary"><i class="uk-icon-comment"></i>发表评论
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </article>
-        </li>
-        {% else %}
-        <p>还没有人评论...</p>
-        {% endfor %}
-    </ul>
-</div>
 
-<div class="uk-width-1-4">
-    <div class="uk-panel uk-panel-box">
-        <div class="uk-text-center">
-            <img class="uk-border-circle" width="120" height="120" src="{{ blog.user_image }}">
-            <h3>{{ blog.user_name }}</h3>
-        </div>
-    </div>
+            <hr class="uk-article-divider">
+        {% endif %}
 
-    <div class="uk-panel uk-panel-header">
-        <h3 class="uk-panel-title">友情链接</h3>
-        <ul class="uk-list uk-list-line">
-            <li><i class="uk-icon-link"></i><a href="#"> 学习</a></li>
-            <li><i class="uk-icon-link"></i><a href="#"> 工作</a></li>
-            <li><i class="uk-icon-link"></i><a href="#"> 生活</a></li>
+        <h3>最新评论</h3>
+        <ul class="uk-comment-list">
+            {% for c in comments %}
+                <li>
+                    <article class="uk-comment">
+                        <header class="uk-comment-header">
+                            <img class="uk-comment-avatar uk-border-circle" width="25" height="25"
+                                 src="{{ c.user_image }}">
+                            <h4 class="uk-comment-title">{{ c.user_name }} {% if c.user_id == blog.user_id %}
+                                (作者){% endif %}</h4>
+                            <p class="uk-comment-meta"> {{ c.created_at|datetime }}</p>
+                        </header>
+                        <div class="uk-comment-body">
+                            {{ c.html_content|safe }}
+                        </div>
+                    </article>
+                </li>
+            {% else %}
+                <p>还没有人评论...</p>
+            {% endfor %}
         </ul>
     </div>
-</div>
+
+    <div class="uk-width-1-4">
+        <div class="uk-panel uk-panel-box">
+            <div class="uk-text-center">
+                <img class="uk-border-circle" width="120" height="120" src="{{ blog.user_image }}">
+                <h3>{{ blog.user_name }}</h3>
+            </div>
+        </div>
+
+        <div class="uk-panel uk-panel-header">
+            <h3 class="uk-panel-title">友情链接</h3>
+            <ul class="uk-list uk-list-line">
+                <li><i class="uk-icon-link"></i><a href="#"> 学习</a></li>
+                <li><i class="uk-icon-link"></i><a href="#"> 工作</a></li>
+                <li><i class="uk-icon-link"></i><a href="#"> 生活</a></li>
+            </ul>
+        </div>
+    </div>
 {% endblock %}

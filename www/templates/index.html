@@ -5,7 +5,7 @@
     <meta charset="utf-8"/>
     <link rel="stylesheet" href="/static/css/uikit.min.css">
 
-    <title>index - Xiao Python Webapp</title>
+    <title>主页 - Xiao Python Webapp</title>
     <style type="text/css">
         #container,#enter {
             text-align: center;
@@ -46,7 +46,7 @@
             element.style.transform = "rotate(" + r + "deg)";
         }
 
-        var timer = setInterval(rotate, 5);
+        var timer = setInterval(rotate, 8);
 
         element.onmouseover = function () {
             clearInterval(timer);
@@ -55,7 +55,7 @@
 
         element.onmouseout = function () {
             if (timer)return;
-            timer = setInterval(rotate, 3);
+            timer = setInterval(rotate, 8);
         };
 
     }());

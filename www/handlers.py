@@ -43,6 +43,7 @@ def index():
         '__template__': 'index.html',
     }
 
+
 @get('/blogs')
 def blogs(*, page='1'):
     # page_index = get_page_index(page)
@@ -193,7 +194,7 @@ def api_register_user(*, email, name, passwd):
     sha1_passwd = '%s:%s' % (uid, passwd)
     user = User(id=uid, name=name.strip(), email=email, passwd=hashlib.sha1(sha1_passwd.encode()).hexdigest(),
                 # image='http://www.gravatar.com/acatar/%s?d=mm&s=120' % hashlib.md5(email.encode()).hexdigest())
-                image='/static/img/user.png')
+                image='/static/img/user.png', admin=True)
     yield from user.save()
     r = web.Response()
     r.content_type = 'application/json'
