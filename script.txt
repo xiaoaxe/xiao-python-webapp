@@ -3,9 +3,10 @@ http://xiao-blog.tunnel.qydev.com/
 
 --- Linux ---
 服务启动命令：
-nohup sh ./app.sh >> log/app.log 2>&1 &
+nohup sh ./app.sh >> www/log/app.log 2>&1 &
 映射公网服务，启动命令：
-nohup sh ./ngrok.sh >> log/server.log 2>&1 &
+screen -S keepngrok
+nohup sh ./ngrok.sh >> www/log/server.log 2>&1 &
 
 --- windows ---
 服务启动命令：
