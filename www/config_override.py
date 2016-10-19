@@ -15,15 +15,7 @@
 
 configs = {
     'db': {
-        'host': '127.0.0.1'
-        # 'host': '192.168.0.100'
+        'password':'00',
     }
 }
 
-
-def main():
-    print("do sth")
-
-
-if __name__ == '__main__':
-    main()
